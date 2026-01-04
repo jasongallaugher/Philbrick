@@ -9,11 +9,13 @@
 
 ## Model Tiers
 
-| Tier | Models | Role |
-|------|--------|------|
-| **Expensive** | Opus, GPT-4o, Gemini Pro | Coordinate, validate, decide |
-| **Moderate** | Sonnet, GPT-4o-mini | Complex tasks, judgment calls |
-| **Cheap** | Haiku, Codex, Gemini Flash | Bulk work, code gen, simple edits |
+| Tier | Examples | Role |
+|------|----------|------|
+| **Expensive** | High-capability models (top-tier GPT, Claude, Gemini, etc.) | Coordinate, validate, decide |
+| **Moderate** | Mid-tier models | Complex tasks, judgment calls |
+| **Cheap** | Fast/lightweight models | Bulk work, code gen, simple edits |
+
+**Note:** Model selection should be based on capability tiers rather than specific model names. Choose models from your provider that match the tier requirements.
 
 ### The Simple Rule
 
@@ -34,7 +36,7 @@
                     │
                     ▼
 ┌─────────────────────────────────────────┐
-│  EXPENSIVE (Lead - Opus)                │
+│  EXPENSIVE (Lead)                       │
 │  • Coordinates, never writes code       │
 │  • Dispatches to workers                │
 │  • Validates results before reporting   │
@@ -170,6 +172,78 @@ After each step, the human should be able to:
 - **Type hints** - always
 - **Docstrings** - brief, focus on purpose
 - **TDD** - test core functionality, not exhaustive
+
+---
+
+## Tooling
+
+### Environment Setup
+
+**Before starting any work, verify the environment:**
+
+1. **Check `uv` is available:**
+   ```bash
+   uv --version
+   ```
+   If not found, install: `curl -LsSf https://astral.sh/uv/install.sh | sh`
+
+2. **Verify Python environment:**
+   ```bash
+   uv run python --version
+   ```
+   Should show Python 3.11+ (per `pyproject.toml` requirements)
+
+3. **Sync dependencies:**
+   ```bash
+   uv sync
+   ```
+   This creates/updates the virtual environment and installs all dependencies from `pyproject.toml`
+
+4. **Verify installation:**
+   ```bash
+   uv run python -c "import textual; import pytest; print('OK')"
+   ```
+
+### Command Patterns
+
+**Always use `uv` - never raw Python/pip/pytest commands.**
+
+| Task | Command | Notes |
+|------|---------|-------|
+| Run Python script | `uv run python script.py` | Never use `python script.py` |
+| Run module | `uv run python -m module.name` | |
+| Run main entry point | `uv run main.py` | |
+| Run tests | `uv run pytest` | Never use `pytest` directly |
+| Run tests (specific) | `uv run pytest tests/test_file.py::test_function` | |
+| Install package | `uv add package-name` | Adds to `pyproject.toml` |
+| Install dev package | `uv add --dev package-name` | |
+| Sync environment | `uv sync` | Updates venv from `pyproject.toml` |
+| Check Python version | `uv run python --version` | |
+| Interactive Python | `uv run python` | Never use `python` directly |
+
+### Sandbox Considerations
+
+**In sandboxed environments (like Cursor's terminal):**
+
+- `uv` manages the virtual environment automatically - no need to activate manually
+- Always use `uv run` prefix for all Python commands
+- If `uv run` fails with "command not found", verify `uv` is in PATH
+- The virtual environment is typically in `.venv/` or `venv/` (check `pyproject.toml` or `uv.toml`)
+
+### Troubleshooting
+
+**If `uv run python` fails:**
+1. Run `uv sync` to ensure environment exists
+2. Check `uv run python --version` works
+3. Verify `pyproject.toml` exists and is valid
+
+**If imports fail:**
+1. Run `uv sync` to install dependencies
+2. Verify with `uv run python -c "import <module>"`
+
+**If tests fail to run:**
+1. Ensure using `uv run pytest`, not `pytest`
+2. Check `pytest` is in dependencies (it should be in `pyproject.toml`)
 
 ---
 

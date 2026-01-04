@@ -123,15 +123,27 @@ class Scope(Static):
         # Draw samples as point characters with a fixed timebase
         samples_per_pixel = max(1, self.samples_per_pixel)
         window_size = width * samples_per_pixel
-        window = self.samples[-window_size:]
-        if len(window) < window_size:
-            window = [None] * (window_size - len(window)) + window
+        
+        # Always take the most recent samples (scrolling window)
+        window = self.samples[-window_size:] if len(self.samples) > window_size else self.samples
 
         samples_to_draw: list[float | None] = []
+        num_samples = len(window)
+        
         for x_idx in range(width):
             start = x_idx * samples_per_pixel
             end = start + samples_per_pixel
+            
+            # Skip if this bucket is beyond available samples
+            if start >= num_samples:
+                samples_to_draw.append(None)
+                continue
+                
+            # Clip the end to available samples
+            end = min(end, num_samples)
             bucket = window[start:end]
+            
+            # Use the last (most recent) value in the bucket
             sample_value = None
             for value in reversed(bucket):
                 if value is not None:
@@ -167,6 +179,13 @@ class Scope(Static):
                         pass
 
         # Add Y-axis labels on the left
+        # Determine max label width to ensure alignment
+        max_label_width = max(
+            len(f"+{self.v_max:.1f}V"),
+            len(f"{self.v_min:.1f}V"),
+            len(" 0V"),
+        )
+        
         result_lines = []
         for y_idx in range(height):
             line = ''.join(canvas[y_idx])
@@ -185,13 +204,16 @@ class Scope(Static):
                     # Bottom label
                     label = f"{self.v_min:.1f}V"
                 else:
-                    label = " " * 4
+                    label = ""
             else:
                 # Handle case where 0V is not in range
                 if y_idx == height - 1:
                     label = f"{self.v_min:.1f}V"
                 else:
-                    label = " " * 4
+                    label = ""
+            
+            # Pad label to fixed width for alignment
+            label = label.rjust(max_label_width)
 
             result_lines.append(f"{label} ┤ {line}")
 

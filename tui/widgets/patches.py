@@ -30,8 +30,8 @@ class PatchList(Static):
         Returns:
             String representation of all patches, one per line
         """
-        # Access the internal connections list
-        connections = self.patchbay._connections
+        # Access the patch connections via public API
+        connections = self.patchbay.get_connections()
 
         if not connections:
             return "No patches"

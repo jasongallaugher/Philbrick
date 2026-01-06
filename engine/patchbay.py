@@ -41,6 +41,14 @@ class PatchBay:
         """Remove all patch connections."""
         self._connections.clear()
 
+    def get_connections(self) -> list[tuple[PatchPoint, PatchPoint]]:
+        """Get a copy of all patch connections.
+
+        Returns:
+            A copy of the list of (source, dest) tuples to prevent external mutation
+        """
+        return self._connections.copy()
+
     def propagate(self) -> None:
         """Propagate signal values through all patch connections.
 

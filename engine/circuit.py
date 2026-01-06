@@ -17,6 +17,7 @@ from engine.subcircuit import (
     instantiate_subcircuit,
     load_subcircuit_file,
 )
+from engine.utils import parse_port_ref
 
 
 class ComponentDef(BaseModel):
@@ -133,31 +134,6 @@ class CircuitDef(BaseModel):
                 data["subcircuits"][subdef.name] = subdef
 
         return cls(**data)
-
-
-def parse_port_ref(port_ref: str) -> tuple[str, str]:
-    """Parse a port reference string into component and port names.
-
-    Args:
-        port_ref: Port reference in format "component_name.port_name"
-
-    Returns:
-        Tuple of (component_name, port_name)
-
-    Raises:
-        ValueError: If port reference format is invalid
-
-    Example:
-        >>> parse_port_ref("INT1.out")
-        ('INT1', 'out')
-    """
-    parts = port_ref.rsplit(".", 1)
-    if len(parts) != 2:
-        raise ValueError(
-            f"Invalid port reference '{port_ref}'. "
-            f"Expected format: 'component_name.port_name'"
-        )
-    return parts[0], parts[1]
 
 
 class CircuitLoader:
@@ -379,7 +355,7 @@ class CircuitSaver:
 
         # Build patch definitions
         patches = []
-        for source_point, dest_point in self.patchbay._connections:
+        for source_point, dest_point in self.patchbay.get_connections():
             # Find which component owns each patch point
             source_comp = self._find_component_for_point(
                 self.machine.components, source_point, is_output=True

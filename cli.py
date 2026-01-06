@@ -149,7 +149,7 @@ def run_simulation(
         if circuit_def.description:
             print(f"Description: {circuit_def.description}")
         print(f"Components: {len(machine.components)}")
-        print(f"Patches: {len(patchbay._connections)}")
+        print(f"Patches: {len(patchbay.get_connections())}")
         print(f"Scope channels: {len(channels)}")
         print(f"Running {steps} steps with dt={dt}s...")
 

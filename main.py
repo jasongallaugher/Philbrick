@@ -8,6 +8,7 @@ from textual.binding import Binding
 from engine.machine import Machine
 from engine.patchbay import PatchBay
 from engine.registry import create_component
+from engine.utils import parse_port_ref
 from tui.widgets.scope import Scope
 from tui.widgets.patches import PatchList
 
@@ -205,8 +206,8 @@ class AnalogApp(App):
 
         # Create patches
         for patch in preset.get("patches", []):
-            src_name, src_port = patch[0].rsplit(".", 1)
-            dst_name, dst_port = patch[1].rsplit(".", 1)
+            src_name, src_port = parse_port_ref(patch[0])
+            dst_name, dst_port = parse_port_ref(patch[1])
 
             src_comp = self.components[src_name]
             dst_comp = self.components[dst_name]
@@ -222,7 +223,7 @@ class AnalogApp(App):
         channels = scope_config.get("channels", [])
 
         for ch in channels[:4]:  # Max 4 channels
-            src_name, src_port = ch["source"].rsplit(".", 1)
+            src_name, src_port = parse_port_ref(ch["source"])
             comp = self.components[src_name]
             port = comp.outputs.get(src_port) or comp.inputs.get(src_port)
             if port:

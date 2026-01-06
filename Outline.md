@@ -546,7 +546,21 @@ The goal is *comprehension*, not completion. Speed is the enemy here.
 
 ---
 
-## Next Steps: Phase 6 - Transformer in Analog
+## Known Issues / Technical Debt
+
+### Architectural (Deferred)
+
+| Issue | Severity | Notes |
+|-------|----------|-------|
+| TUI bypasses CircuitDef loader | High | main.py loads YAML manually, misses subcircuit support/validation. Should unify on CircuitDef. |
+| Global mutable state | Medium | MCP server and registry use module-level globals. Hard to run multiple circuits or isolate tests. |
+| Implicit simulation ordering | Medium | One-tick latency from propagate→step ordering. Acceptable for now - mirrors real analog delay. |
+
+### Bugs (Deferred)
+
+| Issue | Severity | Notes |
+|-------|----------|-------|
+| Circuit serialization drops params | Medium | Round-tripping can change behavior - only subset of component params serialized. |
 
 ---
 

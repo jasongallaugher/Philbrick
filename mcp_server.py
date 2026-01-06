@@ -17,6 +17,7 @@ from engine.component import Component
 from engine.registry import list_component_types, create_component, is_subcircuit
 from engine.subcircuits.softmax import register_softmax
 from engine.subcircuits.attention import register_attention_head
+from engine.utils import parse_port_ref
 import statistics
 
 # Initialize MCP server
@@ -181,21 +182,9 @@ def philbrick_connect(source: str, dest: str) -> dict:
         raise ValueError("Circuit not initialized. Call philbrick_create_circuit first.")
 
     try:
-        # Parse source port
-        src_parts = source.rsplit(".", 1)
-        if len(src_parts) != 2:
-            raise ValueError(
-                f"Invalid source format '{source}'. Use 'component_name.port_name'"
-            )
-        src_comp_name, src_port_name = src_parts
-
-        # Parse destination port
-        dst_parts = dest.rsplit(".", 1)
-        if len(dst_parts) != 2:
-            raise ValueError(
-                f"Invalid destination format '{dest}'. Use 'component_name.port_name'"
-            )
-        dst_comp_name, dst_port_name = dst_parts
+        # Parse source and destination ports
+        src_comp_name, src_port_name = parse_port_ref(source)
+        dst_comp_name, dst_port_name = parse_port_ref(dest)
 
         # Get components
         src_component = _components.get(src_comp_name)
@@ -306,13 +295,7 @@ def philbrick_read_signal(port: str) -> dict:
         raise ValueError("Circuit not initialized. Call philbrick_create_circuit first.")
 
     try:
-        parts = port.rsplit(".", 1)
-        if len(parts) != 2:
-            raise ValueError(
-                f"Invalid port format '{port}'. Use 'component_name.port_name'"
-            )
-
-        comp_name, port_name = parts
+        comp_name, port_name = parse_port_ref(port)
 
         component = _components.get(comp_name)
         if component is None:
@@ -383,7 +366,7 @@ def philbrick_get_circuit_info() -> dict:
 
     # Build connection info
     connections_info = []
-    for src_port, dst_port in _patchbay._connections:
+    for src_port, dst_port in _patchbay.get_connections():
         # Find which components these ports belong to
         src_comp = None
         src_port_name = None
@@ -445,7 +428,7 @@ def philbrick_get_circuit_diagram() -> dict:
     try:
         # Build connection map: source_port -> [dest_ports]
         connections_map: dict[tuple, list[tuple]] = {}
-        for src_port, dst_port in _patchbay._connections:
+        for src_port, dst_port in _patchbay.get_connections():
             # Find which components and ports these belong to
             src_comp = None
             src_port_name = None

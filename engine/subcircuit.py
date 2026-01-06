@@ -13,6 +13,7 @@ from engine.component import Component
 from engine.machine import Machine
 from engine.patchbay import PatchBay
 from engine.signal import PatchPoint
+from engine.utils import parse_port_ref
 
 
 class ComponentDef(BaseModel):
@@ -166,31 +167,6 @@ class SubcircuitComponent(Component):
         independently as part of the machine's reset.
         """
         pass
-
-
-def parse_port_ref(port_ref: str) -> tuple[str, str]:
-    """Parse a port reference string into component and port names.
-
-    Args:
-        port_ref: Port reference in format "component_name.port_name"
-
-    Returns:
-        Tuple of (component_name, port_name)
-
-    Raises:
-        ValueError: If port reference format is invalid
-
-    Example:
-        >>> parse_port_ref("INT1.out")
-        ('INT1', 'out')
-    """
-    parts = port_ref.rsplit(".", 1)
-    if len(parts) != 2:
-        raise ValueError(
-            f"Invalid port reference '{port_ref}'. "
-            f"Expected format: 'component_name.port_name'"
-        )
-    return parts[0], parts[1]
 
 
 def instantiate_subcircuit(

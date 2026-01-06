@@ -1,0 +1,133 @@
+name: "Van der Pol Oscillator"
+description: |
+  Nonlinear oscillator demonstrating the Van der Pol equation:
+  x'' - mu*(1-x^2)*x' + x = 0
+
+  This famous nonlinear system exhibits self-sustained oscillations with amplitude
+  independent of initial conditions (limit cycle behavior). The parameter mu controls
+  the strength of the nonlinear damping effect.
+
+  The circuit implements the equation as:
+  x'' = mu*(1-x^2)*x' - x
+
+  Key components:
+  - Two integrators create the feedback loop (acceleration -> velocity -> position)
+  - Multiplier computes x^2 from position
+  - Second multiplier computes the product (1-x^2)*x'
+  - Coefficient scales by mu and changes sign for the damping term
+  - Summer combines the nonlinear damping term with the linear restoring force
+
+  With mu = 1.0, the system exhibits a stable limit cycle oscillation.
+  Larger mu values create more relaxation-like behavior.
+
+  Initial conditions: x(0) = 0.1 (small displacement), x'(0) = 0 (at rest)
+
+components:
+  # First integrator: integrates acceleration to produce velocity
+  - name: INT_VEL
+    type: Integrator
+    params:
+      initial: 0.0   # x'(0) = 0 (starting at rest)
+      gain: 1.0
+
+  # Second integrator: integrates velocity to produce position
+  - name: INT_POS
+    type: Integrator
+    params:
+      initial: 0.1   # x(0) = 0.1 (small initial displacement)
+      gain: 1.0
+
+  # Multiplier to compute x^2
+  - name: X_SQUARED
+    type: Multiplier
+    params: {}
+
+  # Coefficient for (1 - x^2): subtract from 1
+  # Using a summer to compute (1 - x^2)
+  - name: ONE_MINUS_X2
+    type: Summer
+    params:
+      weights: [1.0, 1.0]
+
+  # Constant +1 source for (1 - x^2) computation
+  - name: CONST_ONE
+    type: Constant
+    params:
+      value: 1.0
+
+  # Coefficient to negate x^2 for (1 - x^2)
+  - name: NEG_X2
+    type: Coefficient
+    params:
+      k: -1.0
+
+  # Multiplier to compute (1-x^2)*x'
+  - name: NONLINEAR_TERM
+    type: Multiplier
+    params: {}
+
+  # Coefficient for mu and sign flip (negative for the equation)
+  # mu = 1.0, negated for equation form: -mu*(1-x^2)*x'
+  - name: MU_COEFFICIENT
+    type: Coefficient
+    params:
+      k: -1.0
+
+  # Coefficient for linear restoring force (stiffness): -x
+  - name: LINEAR_RESTORING
+    type: Coefficient
+    params:
+      k: -1.0
+
+  # Summer to combine nonlinear and linear feedback terms
+  - name: FEEDBACK_SUM
+    type: Summer
+    params:
+      weights: [1.0, 1.0]
+
+patches:
+  # Position -> multiplier x for x^2
+  - [INT_POS.out, X_SQUARED.x]
+
+  # Position -> multiplier y for x^2
+  - [INT_POS.out, X_SQUARED.y]
+
+  # x^2 -> negation coefficient
+  - [X_SQUARED.out, NEG_X2.in]
+
+  # Constant 1 -> summer for (1 - x^2) input 0
+  - [CONST_ONE.out, ONE_MINUS_X2.in0]
+
+  # -x^2 -> summer for (1 - x^2) input 1
+  - [NEG_X2.out, ONE_MINUS_X2.in1]
+
+  # (1 - x^2) -> nonlinear term multiplier x
+  - [ONE_MINUS_X2.out, NONLINEAR_TERM.x]
+
+  # Velocity -> nonlinear term multiplier y
+  - [INT_VEL.out, NONLINEAR_TERM.y]
+
+  # (1-x^2)*x' -> mu coefficient (and negation)
+  - [NONLINEAR_TERM.out, MU_COEFFICIENT.in]
+
+  # Position -> linear restoring coefficient
+  - [INT_POS.out, LINEAR_RESTORING.in]
+
+  # mu*(1-x^2)*x' -> feedback summer input 0
+  - [MU_COEFFICIENT.out, FEEDBACK_SUM.in0]
+
+  # -x -> feedback summer input 1
+  - [LINEAR_RESTORING.out, FEEDBACK_SUM.in1]
+
+  # Combined feedback -> velocity integrator (acceleration input)
+  - [FEEDBACK_SUM.out, INT_VEL.in]
+
+  # Velocity -> position integrator
+  - [INT_VEL.out, INT_POS.in]
+
+scope:
+  channels:
+    - source: INT_POS.out
+      label: "Position (x)"
+    - source: INT_VEL.out
+      label: "Velocity (x')"

@@ -1,0 +1,77 @@
+name: "Second Order System"
+description: |
+  Generic second-order linear system demonstrating the equation:
+  x'' + 2*zeta*omega*x' + omega^2*x = 0
+
+  This models damped oscillations with two key parameters:
+  - zeta (damping ratio): controls whether system is underdamped, critically damped, or overdamped
+  - omega (natural frequency): determines oscillation speed
+
+  The circuit uses two integrators to create the feedback loop:
+  - First integrator converts acceleration to velocity
+  - Second integrator converts velocity to position
+  - Damping term (2*zeta*omega*x') and stiffness term (omega^2*x) are summed
+    and negated to create the restoring acceleration
+
+  Initial conditions: x(0) = 1.0 (max displacement), x'(0) = 0 (at rest)
+
+components:
+  # First integrator: integrates acceleration to produce velocity
+  - name: INT_VEL
+    type: Integrator
+    params:
+      initial: 0.0   # x'(0) = 0 (starting at rest)
+      gain: 1.0
+
+  # Second integrator: integrates velocity to produce position
+  - name: INT_POS
+    type: Integrator
+    params:
+      initial: 1.0   # x(0) = 1.0 (starting at max displacement)
+      gain: 1.0
+
+  # Coefficient for damping: 2*zeta*omega
+  # With k = -0.5, this gives zeta*omega = 0.25 (moderate damping)
+  - name: DAMPING
+    type: Coefficient
+    params:
+      k: -0.5
+
+  # Coefficient for stiffness: omega^2
+  # With k = -1.0, this gives omega = 1 rad/s (period ~ 6.28 seconds)
+  - name: STIFFNESS
+    type: Coefficient
+    params:
+      k: -1.0
+
+  # Summer to combine damping and stiffness feedback terms
+  - name: FEEDBACK_SUM
+    type: Summer
+    params:
+      weights: [1.0, 1.0]
+
+patches:
+  # Velocity -> damping coefficient
+  - [INT_VEL.out, DAMPING.in]
+
+  # Position -> stiffness coefficient
+  - [INT_POS.out, STIFFNESS.in]
+
+  # Damping output -> feedback summer input 0
+  - [DAMPING.out, FEEDBACK_SUM.in0]
+
+  # Stiffness output -> feedback summer input 1
+  - [STIFFNESS.out, FEEDBACK_SUM.in1]
+
+  # Combined feedback -> velocity integrator (acceleration input)
+  - [FEEDBACK_SUM.out, INT_VEL.in]
+
+  # Velocity -> position integrator
+  - [INT_VEL.out, INT_POS.in]
+
+scope:
+  channels:
+    - source: INT_POS.out
+      label: "Position (x)"
+    - source: INT_VEL.out
+      label: "Velocity (x')"

@@ -20,8 +20,16 @@
 ### The Simple Rule
 
 1. **Start Cheap** - Default for all code generation
-2. **Escalate to Moderate** - If Cheap fails or task clearly needs judgment  
+2. **Escalate to Moderate** - If Cheap fails or task clearly needs judgment
 3. **Expensive never generates** - Only coordinates and validates
+
+### Validation Responsibility
+
+**The coordinator (Expensive) validates all agent output - the user does NOT review code.**
+- Run tests to verify correctness
+- Check that acceptance criteria are met
+- Fix issues by dispatching agents, not asking the user
+- Only involve user for direction/decisions, never code review
 
 ---
 

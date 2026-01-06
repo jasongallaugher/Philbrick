@@ -2,14 +2,23 @@
 
 *Named after George Philbrick, pioneer of the operational amplifier.*
 
-A TUI-based block-diagram analog computer emulator, inspired by classic machines like the EAI 380 and Heathkit H1. Built for learning, experimentation, and eventual LLM/agentic integration.
+An LLM-driven analog computer simulator designed to explore the application of analog computing to LLM concepts like Transformers. Inspired by classic machines like the EAI 380 and Heathkit H1.
+
+## Vision
+
+```
+┌─────────────┐      ┌─────────────────────┐      ┌─────────────────┐
+│    LLM      │ ───▶ │  Philbrick Simulator │ ───▶ │  Real Hardware  │
+│  (designer) │ ◀─── │   (abstractions)     │      │   (eventual)    │
+└─────────────┘      └─────────────────────┘      └─────────────────┘
+```
 
 ## Goals
 
-1. **Educational** - Understand analog computation by building, not just reading
-2. **Visual** - TUI that feels like a real patch panel, not a software abstraction  
-3. **Extensible** - Clean architecture for adding components, LLM-driven circuit generation
-4. **Fun** - Real-time interaction, satisfying feedback loops
+1. **LLM-native** - Abstractions and interfaces natural for LLMs to generate/manipulate
+2. **Transformer exploration** - Build attention, softmax, and other primitives in analog
+3. **Hardware path** - Maintain fidelity to real analog concepts for eventual physical implementation
+4. **Educational** - Learn analog computing AND agentic development through building
 
 ---
 
@@ -502,16 +511,49 @@ The goal is *comprehension*, not completion. Speed is the enemy here.
 
 ---
 
-## Next Steps
+## Current Status
 
-Start with Step 0.1. Only Step 0.1. Get it running, understand it, then move on.
+| Phase | Status | Summary |
+|-------|--------|---------|
+| 0 | ✓ Complete | TUI scaffold, transport controls, basic engine |
+| 1 | ✓ Complete | PatchBay, Integrator, Summer, Coefficient, Inverter, multi-channel Scope |
+| 2 | ✓ Complete | YAML circuits, CLI, registry, subcircuits, presets |
+| 3 | ✓ Complete | Function generators, attention primitives |
+| 4 | ✓ Complete | Hierarchical composition, Softmax & AttentionHead subcircuits |
+| 5 | ✓ Complete | MCP server with 10 tools, rich feedback (110 tests passing) |
 
-- [ ] **0.1** - Empty Textual app (runs, quits)
-- [ ] **0.2** - Layout skeleton (three panes visible)
-- [ ] **0.3** - Signal/Component core (REPL only)
-- [ ] **0.4** - Machine step loop (REPL only)
-- [ ] **0.5** - ASCII scope widget (static test data)
-- [ ] **0.6** - Wire scope to engine (first "it's alive" moment)
-- [ ] **0.7** - Transport controls (run/pause/reset)
+**Components:** 17 primitives + 2 subcircuits (Softmax, AttentionHead)
 
-Then Phase 1, same pace.
+---
+
+## MCP Server (Phase 5 - Complete)
+
+**10 Tools Available:**
+| Tool | Purpose |
+|------|---------|
+| `philbrick_list_components` | List available component/subcircuit types |
+| `philbrick_create_circuit` | Initialize new circuit |
+| `philbrick_add_component` | Add component by type and name |
+| `philbrick_connect` | Wire source.port to dest.port |
+| `philbrick_run` | Run simulation for N steps |
+| `philbrick_read_signal` | Read current signal value |
+| `philbrick_get_circuit_info` | Introspect circuit state |
+| `philbrick_get_signal_stats` | Get min/max/mean/final for a signal |
+| `philbrick_get_time_series` | Get signal history as array |
+| `philbrick_check_settled` | Check if signal has stabilized |
+
+**Run:** `uv run python mcp_server.py`
+
+---
+
+## Next Steps: Phase 6 - Transformer in Analog
+
+---
+
+## Future Phases
+
+### Phase 6: Transformer in Analog
+- Multi-key attention with full softmax
+- Multi-head attention composition
+- Simple sequence processing demo
+- Real hardware mapping (component values, op-amp circuits)

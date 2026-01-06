@@ -1,0 +1,192 @@
+name: "Lorenz Attractor"
+description: |
+  The Lorenz system is a famous example of deterministic chaos, discovered by Edward Lorenz
+  while studying atmospheric convection. It exhibits the butterfly attractor - a beautiful
+  fractal structure where nearby trajectories diverge exponentially.
+
+  The system is defined by three coupled differential equations:
+  dx/dt = σ(y - x)
+  dy/dt = x(ρ - z) - y
+  dz/dt = xy - βz
+
+  Classic parameters (which produce chaotic behavior):
+  - σ (sigma) = 10     (Prandtl number)
+  - ρ (rho) = 28       (Rayleigh number)
+  - β (beta) = 8/3     (geometric factor)
+
+  With these parameters, the system exhibits chaotic motion within the famous
+  butterfly attractor. The trajectory never settles into a periodic orbit but
+  instead traces a complex, fractal structure with two characteristic "wings".
+
+  Initial conditions: x(0) = 1, y(0) = 1, z(0) = 1
+
+  Key dynamics:
+  - The first term (dx/dt) creates a restoring force toward y
+  - The second term (dy/dt) couples x and z, with the z term acting as a damping
+  - The third term (dz/dt) creates a feedback between x and y, controlling growth
+
+components:
+  # Three state variables integrated from their time derivatives
+  - name: X_INT
+    type: Integrator
+    params:
+      initial: 1.0
+      gain: 1.0
+
+  - name: Y_INT
+    type: Integrator
+    params:
+      initial: 1.0
+      gain: 1.0
+
+  - name: Z_INT
+    type: Integrator
+    params:
+      initial: 1.0
+      gain: 1.0
+
+  # ========== dx/dt = σ(y - x) ==========
+  # Coefficient to negate x for (y - x)
+  - name: NEG_X
+    type: Coefficient
+    params:
+      k: -1.0
+
+  # Compute (y - x): summer with y positive and -x
+  - name: DIFF_YX
+    type: Summer
+    params:
+      weights: [1.0, 1.0]
+
+  # Coefficient for σ = 10
+  - name: SIGMA
+    type: Coefficient
+    params:
+      k: 10.0
+
+  # ========== dy/dt = x(ρ - z) - y ==========
+  # Constant ρ = 28
+  - name: RHO_CONST
+    type: Constant
+    params:
+      value: 28.0
+
+  # Coefficient to negate z for (ρ - z)
+  - name: NEG_Z
+    type: Coefficient
+    params:
+      k: -1.0
+
+  # Compute (ρ - z): summer with constant and negative z
+  - name: RHO_MINUS_Z
+    type: Summer
+    params:
+      weights: [1.0, 1.0]
+
+  # Multiplier for x(ρ - z)
+  - name: X_RHO_MINUS_Z
+    type: Multiplier
+    params: {}
+
+  # Coefficient to negate y for the -y term
+  - name: NEG_Y
+    type: Coefficient
+    params:
+      k: -1.0
+
+  # Summer for dy/dt = x(ρ - z) - y
+  - name: DY_SUM
+    type: Summer
+    params:
+      weights: [1.0, 1.0]
+
+  # ========== dz/dt = xy - βz ==========
+  # Multiplier for xy
+  - name: XY_MULT
+    type: Multiplier
+    params: {}
+
+  # Coefficient for -β = -8/3 ≈ -2.667
+  - name: NEG_BETA
+    type: Coefficient
+    params:
+      k: -2.6666666667
+
+  # Summer for dz/dt = xy - βz
+  - name: DZ_SUM
+    type: Summer
+    params:
+      weights: [1.0, 1.0]
+
+patches:
+  # ========== dx/dt connections ==========
+  # x -> negation coefficient for (y - x)
+  - [X_INT.out, NEG_X.in]
+
+  # y -> summer in0 (positive y)
+  - [Y_INT.out, DIFF_YX.in0]
+
+  # -x -> summer in1 (negative x)
+  - [NEG_X.out, DIFF_YX.in1]
+
+  # (y - x) -> σ coefficient
+  - [DIFF_YX.out, SIGMA.in]
+
+  # σ(y - x) -> X integrator input
+  - [SIGMA.out, X_INT.in]
+
+  # ========== dy/dt connections ==========
+  # ρ constant (28) -> rho_minus_z summer in0
+  - [RHO_CONST.out, RHO_MINUS_Z.in0]
+
+  # z -> negation for (ρ - z)
+  - [Z_INT.out, NEG_Z.in]
+
+  # -z -> rho_minus_z summer in1
+  - [NEG_Z.out, RHO_MINUS_Z.in1]
+
+  # x -> multiplier x for x(ρ - z)
+  - [X_INT.out, X_RHO_MINUS_Z.x]
+
+  # (ρ - z) -> multiplier y
+  - [RHO_MINUS_Z.out, X_RHO_MINUS_Z.y]
+
+  # y -> negation coefficient for -y
+  - [Y_INT.out, NEG_Y.in]
+
+  # x(ρ - z) -> dy summer in0
+  - [X_RHO_MINUS_Z.out, DY_SUM.in0]
+
+  # -y -> dy summer in1
+  - [NEG_Y.out, DY_SUM.in1]
+
+  # dy/dt -> Y integrator
+  - [DY_SUM.out, Y_INT.in]
+
+  # ========== dz/dt connections ==========
+  # x -> xy multiplier x
+  - [X_INT.out, XY_MULT.x]
+
+  # y -> xy multiplier y
+  - [Y_INT.out, XY_MULT.y]
+
+  # z -> -β coefficient for -βz
+  - [Z_INT.out, NEG_BETA.in]
+
+  # xy -> dz summer in0
+  - [XY_MULT.out, DZ_SUM.in0]
+
+  # -βz -> dz summer in1
+  - [NEG_BETA.out, DZ_SUM.in1]
+
+  # dz/dt -> Z integrator
+  - [DZ_SUM.out, Z_INT.in]
+
+scope:
+  channels:
+    - source: X_INT.out
+      label: "X Position"
+    - source: Y_INT.out
+      label: "Y Position"
+    - source: Z_INT.out
+      label: "Z Position (Height)"

@@ -1,6 +1,3 @@
-from typing import Any
-
-
 class Signal:
     """Holds a float value for signal transmission."""
 

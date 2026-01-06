@@ -1,0 +1,62 @@
+name: "Amplitude Modulation"
+description: |
+  Demonstrates amplitude modulation (AM) using Phase 3 math components.
+  A high-frequency carrier signal (sine wave at 5 Hz) is modulated by a
+  slower modulating signal (sine wave at 0.5 Hz). The Multiplier component
+  performs the modulation by multiplying the carrier and modulator together.
+  The result is then passed through a Limiter to clip the output to a safe
+  range of -1.0 to +1.0 volts, demonstrating signal limiting/clipping.
+
+  AM equation: output = carrier(t) * modulator(t)
+  Where: carrier(t) = sin(2*pi*5*t) and modulator(t) = sin(2*pi*0.5*t)
+
+components:
+  # High-frequency carrier signal (5 Hz sine wave)
+  - name: CARRIER
+    type: VoltageSource
+    params:
+      frequency: 5.0      # 5 Hz carrier frequency
+      amplitude: 1.0      # 1V peak amplitude
+
+  # Low-frequency modulating signal (0.5 Hz sine wave)
+  - name: MODULATOR
+    type: VoltageSource
+    params:
+      frequency: 0.5      # 0.5 Hz modulation frequency
+      amplitude: 1.0      # 1V peak amplitude
+
+  # Four-quadrant multiplier for AM modulation
+  # Output = carrier * modulator (produces classic AM envelope)
+  - name: AM_MULT
+    type: Multiplier
+    params:
+      scale: 1.0          # Unity scale
+
+  # Limiter clips output to safe voltage range
+  # Demonstrates signal limiting when modulated signal exceeds bounds
+  - name: OUTPUT_LIMITER
+    type: Limiter
+    params:
+      min_val: -1.0       # Clip negative peaks at -1V
+      max_val: 1.0        # Clip positive peaks at +1V
+
+patches:
+  # Carrier -> Multiplier X input
+  - [CARRIER.out, AM_MULT.x]
+
+  # Modulator -> Multiplier Y input
+  - [MODULATOR.out, AM_MULT.y]
+
+  # Multiplied signal -> Limiter input
+  - [AM_MULT.out, OUTPUT_LIMITER.in]
+
+scope:
+  channels:
+    - source: CARRIER.out
+      label: "Carrier (5 Hz)"
+    - source: MODULATOR.out
+      label: "Modulator (0.5 Hz)"
+    - source: AM_MULT.out
+      label: "AM Output (raw)"
+    - source: OUTPUT_LIMITER.out
+      label: "AM Output (limited)"

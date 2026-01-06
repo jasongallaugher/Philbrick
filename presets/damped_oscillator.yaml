@@ -1,0 +1,70 @@
+name: "Damped Harmonic Oscillator"
+description: |
+  Damped harmonic oscillator demonstrating the equation x'' = -w^2*x - 2*zeta*w*x'.
+  This models a spring-mass-damper system where oscillations decay exponentially.
+  The damping ratio zeta controls the decay rate:
+    - zeta < 1: underdamped (oscillates while decaying)
+    - zeta = 1: critically damped (fastest decay without oscillation)
+    - zeta > 1: overdamped (slow decay without oscillation)
+  This preset uses zeta = 0.2 and w = 1 for visible underdamped oscillation.
+
+components:
+  # First integrator: integrates acceleration to produce velocity
+  - name: INT_VEL
+    type: Integrator
+    params:
+      initial: 0.0   # x'(0) = 0 (starting at rest)
+      gain: 1.0
+
+  # Second integrator: integrates velocity to produce position
+  - name: INT_POS
+    type: Integrator
+    params:
+      initial: 1.0   # x(0) = 1.0 (starting at max displacement)
+      gain: 1.0
+
+  # Coefficient for -w^2 (spring term)
+  # k = -1.0 gives w = 1 rad/s
+  - name: SPRING
+    type: Coefficient
+    params:
+      k: -1.0
+
+  # Coefficient for -2*zeta*w (damping term)
+  # k = -0.4 gives 2*zeta*w = 0.4, so zeta = 0.2 with w = 1
+  - name: DAMPING
+    type: Coefficient
+    params:
+      k: -0.4
+
+  # Summer combines spring and damping forces to produce acceleration
+  - name: SUM_ACCEL
+    type: Summer
+    params:
+      weights: [1.0, 1.0]
+
+patches:
+  # Position -> spring coefficient
+  - [INT_POS.out, SPRING.in]
+
+  # Velocity -> damping coefficient
+  - [INT_VEL.out, DAMPING.in]
+
+  # Spring force -> summer input 0
+  - [SPRING.out, SUM_ACCEL.in0]
+
+  # Damping force -> summer input 1
+  - [DAMPING.out, SUM_ACCEL.in1]
+
+  # Total acceleration -> velocity integrator
+  - [SUM_ACCEL.out, INT_VEL.in]
+
+  # Velocity -> position integrator
+  - [INT_VEL.out, INT_POS.in]
+
+scope:
+  channels:
+    - source: INT_POS.out
+      label: "Position (x)"
+    - source: INT_VEL.out
+      label: "Velocity (x')"

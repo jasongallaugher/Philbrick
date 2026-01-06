@@ -1,0 +1,34 @@
+name: "Voltage Ramp Generator"
+description: |
+  Simple integrator with constant DC input demonstrating linear ramp output.
+  When a constant voltage is applied to an integrator, the output grows linearly
+  with time: output = initial + (input * gain * time).
+  This is the fundamental building block for timing circuits and sweep generators.
+  With input = 1.0V and gain = 1.0, output increases by 1V per second.
+
+components:
+  # DC voltage source (constant 1.0V)
+  # Setting frequency = 0 produces a constant DC output at the amplitude level
+  - name: DC_SOURCE
+    type: VoltageSource
+    params:
+      frequency: 0.0    # DC (no oscillation)
+      amplitude: 1.0    # 1.0 volt constant output
+
+  # Integrator converts constant input to linear ramp
+  - name: RAMP_INT
+    type: Integrator
+    params:
+      initial: 0.0     # Start at 0V
+      gain: 1.0        # 1V/s per 1V input
+
+patches:
+  # DC source -> integrator input
+  - [DC_SOURCE.out, RAMP_INT.in]
+
+scope:
+  channels:
+    - source: RAMP_INT.out
+      label: "Ramp Output"
+    - source: DC_SOURCE.out
+      label: "DC Input"

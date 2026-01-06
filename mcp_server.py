@@ -14,7 +14,7 @@ from mcp.server.fastmcp import FastMCP
 from engine.machine import Machine
 from engine.patchbay import PatchBay
 from engine.component import Component
-from engine.registry import list_component_types, create_component
+from engine.registry import list_component_types, create_component, is_subcircuit
 from engine.subcircuits.softmax import register_softmax
 from engine.subcircuits.attention import register_attention_head
 import statistics
@@ -50,6 +50,9 @@ _components: dict[str, Component] = {}
 
 # Module-level signal history tracking
 _signal_history: dict[str, list[float]] = {}  # port -> list of values
+
+# Maximum signal history size to prevent unbounded memory growth
+_MAX_SIGNAL_HISTORY = 100000  # 100k samples
 
 
 # Register subcircuits at module load
@@ -130,7 +133,7 @@ def philbrick_add_component(
     try:
         # For subcircuits, provide machine and patchbay in params
         create_params = params or {}
-        if component_type in ["Softmax", "AttentionHead"]:
+        if is_subcircuit(component_type):
             create_params["machine"] = _machine
             create_params["patchbay"] = _patchbay
 
@@ -179,7 +182,7 @@ def philbrick_connect(source: str, dest: str) -> dict:
 
     try:
         # Parse source port
-        src_parts = source.split(".", 1)
+        src_parts = source.rsplit(".", 1)
         if len(src_parts) != 2:
             raise ValueError(
                 f"Invalid source format '{source}'. Use 'component_name.port_name'"
@@ -187,7 +190,7 @@ def philbrick_connect(source: str, dest: str) -> dict:
         src_comp_name, src_port_name = src_parts
 
         # Parse destination port
-        dst_parts = dest.split(".", 1)
+        dst_parts = dest.rsplit(".", 1)
         if len(dst_parts) != 2:
             raise ValueError(
                 f"Invalid destination format '{dest}'. Use 'component_name.port_name'"
@@ -266,6 +269,9 @@ def philbrick_run(steps: int = 100) -> dict:
                     if port_key not in _signal_history:
                         _signal_history[port_key] = []
                     _signal_history[port_key].append(port.read())
+                    # Trim history if over limit to prevent unbounded memory growth
+                    if len(_signal_history[port_key]) > _MAX_SIGNAL_HISTORY:
+                        _signal_history[port_key] = _signal_history[port_key][-_MAX_SIGNAL_HISTORY:]
 
         return {
             "status": "success",
@@ -300,7 +306,7 @@ def philbrick_read_signal(port: str) -> dict:
         raise ValueError("Circuit not initialized. Call philbrick_create_circuit first.")
 
     try:
-        parts = port.split(".", 1)
+        parts = port.rsplit(".", 1)
         if len(parts) != 2:
             raise ValueError(
                 f"Invalid port format '{port}'. Use 'component_name.port_name'"

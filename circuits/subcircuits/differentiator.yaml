@@ -1,0 +1,43 @@
+# Differentiator subcircuit
+# Approximates derivative using integrator in feedback configuration
+#
+# This uses the principle that if the integrator output equals the input,
+# then the integrator's input must be the derivative of its output.
+# High gain on the integrator makes the output track the input closely.
+#
+# Circuit topology:
+#   in --> [SUM] --> [INT] --> out
+#           ^         |
+#           |_________|
+#          (negative feedback)
+
+name: Differentiator
+description: "Approximates derivative using integrator feedback"
+
+inputs: [in]
+outputs: [out]
+
+components:
+  - name: INT
+    type: Integrator
+    params:
+      initial: 0
+      gain: 100  # High gain for fast response
+
+  - name: SUM
+    type: Summer
+    params:
+      weights: [1, -1]  # in0 - in1
+
+patches:
+  # SUM output feeds integrator
+  - [SUM.out, INT.in]
+  # Integrator output feeds back to SUM (negative input)
+  - [INT.out, SUM.in1]
+
+# Port mappings: expose SUM.in0 as "in" and INT.out as "out"
+input_map:
+  in: SUM.in0
+
+output_map:
+  out: INT.out

@@ -184,7 +184,7 @@ def parse_port_ref(port_ref: str) -> tuple[str, str]:
         >>> parse_port_ref("INT1.out")
         ('INT1', 'out')
     """
-    parts = port_ref.split(".", 1)
+    parts = port_ref.rsplit(".", 1)
     if len(parts) != 2:
         raise ValueError(
             f"Invalid port reference '{port_ref}'. "

@@ -1,0 +1,38 @@
+# Example circuit using the Differentiator subcircuit
+# Demonstrates subcircuit instantiation and imports
+#
+# This circuit differentiates a sine wave, which should produce
+# a cosine wave (since d/dt sin(t) = cos(t))
+
+name: Differentiate Sine Wave
+description: |
+  Demonstrates the Differentiator subcircuit by differentiating
+  a sine wave input. The output should approximate a cosine wave.
+
+# Import the differentiator subcircuit definition
+imports:
+  - subcircuits/differentiator.yaml
+
+components:
+  # Voltage source generating a sine wave
+  - name: SRC
+    type: VoltageSource
+    params:
+      frequency: 1.0
+      amplitude: 1.0
+
+  # Instantiate the Differentiator subcircuit
+  # The component type matches the subcircuit name
+  - name: DIFF
+    type: Differentiator
+
+patches:
+  # Connect source to differentiator input
+  - [SRC.out, DIFF.in]
+
+scope:
+  channels:
+    - source: SRC.out
+      label: "Input (sin)"
+    - source: DIFF.out
+      label: "Output (approx cos)"

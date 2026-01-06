@@ -102,8 +102,33 @@ class PiecewiseLinear(Component):
         self.breakpoints: list[tuple[float, float]] = (
             breakpoints if breakpoints is not None else [(-1.0, -1.0), (1.0, 1.0)]
         )
+
+        # Validate breakpoints
+        if len(self.breakpoints) < 2:
+            raise ValueError("PiecewiseLinear requires at least 2 breakpoints")
+
+        # Validate each breakpoint is a tuple/list of exactly 2 values
+        for i, bp in enumerate(self.breakpoints):
+            try:
+                if len(bp) != 2:
+                    raise ValueError(
+                        f"Each breakpoint must be a tuple/list of exactly 2 values (x, y). "
+                        f"Breakpoint {i} has {len(bp)} values"
+                    )
+            except TypeError:
+                raise ValueError(
+                    f"Each breakpoint must be a tuple/list of exactly 2 values (x, y). "
+                    f"Breakpoint {i} is not iterable"
+                )
+
         # Sort by input value
         self.breakpoints.sort(key=lambda bp: bp[0])
+
+        # Validate x values are strictly monotonically increasing
+        x_values = [bp[0] for bp in self.breakpoints]
+        if x_values != sorted(set(x_values)):
+            raise ValueError("PiecewiseLinear breakpoints must have strictly increasing x values")
+
         self.inputs["in"] = PatchPoint("in")
         self.outputs["out"] = PatchPoint("out")
 

@@ -1,0 +1,53 @@
+Multi-Channel Scope Visual Example
+====================================
+
+This shows what a two-channel scope display looks like with the new implementation.
+
+Channel 1 (●): 1.0 Hz sine wave
+Channel 2 (○): 2.0 Hz sine wave
+
+
+CH1 ●  CH2 ○
+
++1.0V ┤ ●           ●           ●           ●
+      ┤   ●       ●   ●       ●   ●       ●   ●
+      ┤     ●   ●       ●   ●       ●   ●       ●   ●
+      ┤      ○○○         ○○○         ○○○         ○○○
+      ┤       ●           ●           ●           ●
+ 0V   ┤ ○──○───○─○───○─○───○─○───○─○───○─○───○─○───○
+      ┤   ●           ●           ●           ●
+      ┤      ○○○         ○○○         ○○○         ○○○
+      ┤     ●   ●       ●   ●       ●   ●       ●   ●
+      ┤   ●       ●   ●       ●   ●       ●   ●
+-1.0V ┤ ●           ●           ●           ●
+
+Features Demonstrated:
+- Legend at top shows "CH1 ●  CH2 ○"
+- Channel 1 (●) oscillates at 1 Hz
+- Channel 2 (○) oscillates at 2 Hz (twice as fast)
+- Both channels overlay on the same grid
+- 0V centerline (─) is visible where no signals are present
+- Y-axis voltage labels on left (+1.0V, 0V, -1.0V)
+- All channels share the same voltage and time scales
+
+
+Three-Channel Example
+=====================
+
+CH1 ●  CH2 ○  CH3 ◆
+
++1.0V ┤ ●     ○     ◆     ●     ○     ◆     ●     ○
+      ┤   ●  ○  ◆    ●   ○  ◆    ●   ○  ◆    ●   ○
+      ┤    ●○  ◆      ● ○  ◆      ● ○  ◆      ● ○
+      ┤     ●○◆        ●○ ◆        ●○ ◆        ●○
+ 0V   ┤ ────●○◆────────●○◆────────●○◆────────●○──
+      ┤     ○●◆        ○●◆         ○●◆         ○●
+      ┤    ○ ●◆       ○ ●◆        ○ ●◆        ○ ●
+      ┤   ○  ●◆      ○  ●◆       ○  ●◆       ○  ●
+-1.0V ┤ ○     ●◆    ○     ●◆    ○     ●◆    ○     ●
+
+Features Demonstrated:
+- Three channels with different symbols (●, ○, ◆)
+- Each channel can have its own frequency
+- Channels overlay smoothly
+- Legend shows all three channels

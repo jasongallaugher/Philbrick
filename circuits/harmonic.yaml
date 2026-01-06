@@ -1,0 +1,33 @@
+name: Harmonic Oscillator
+description: |
+  Simple harmonic oscillator implementing x'' = -w^2 * x
+  where w=1, producing sin/cos waves with period 2*pi.
+  Initial conditions: x(0) = 1, x'(0) = 0
+
+components:
+  - name: INT1
+    type: Integrator
+    params:
+      initial: 0.0
+      gain: 1.0
+  - name: INT2
+    type: Integrator
+    params:
+      initial: 1.0
+      gain: 1.0
+  - name: COEF
+    type: Coefficient
+    params:
+      k: -1.0
+
+patches:
+  - [INT1.out, INT2.in]
+  - [INT2.out, COEF.in]
+  - [COEF.out, INT1.in]
+
+scope:
+  channels:
+    - source: INT2.out
+      label: x (position)
+    - source: INT1.out
+      label: x' (velocity)

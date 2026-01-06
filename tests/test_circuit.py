@@ -21,10 +21,11 @@ def test_parse_port_ref_invalid() -> None:
     with pytest.raises(ValueError, match="Invalid port reference"):
         parse_port_ref("invalid")
 
-    # "too.many.dots" is valid - splits as ("too", "many.dots")
+    # "too.many.dots" is valid - splits as ("too.many", "dots") using rsplit
+    # This supports dotted component names like "SM1.EXP0.out"
     component, port = parse_port_ref("too.many.dots")
-    assert component == "too"
-    assert port == "many.dots"
+    assert component == "too.many"
+    assert port == "dots"
 
 
 def test_circuit_def_from_dict() -> None:

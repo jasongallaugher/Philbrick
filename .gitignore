@@ -8,3 +8,6 @@ venv/
 .env.*
 *.log
 .DS_Store
+
+# Private research notes
+RESEARCH_PRIVATE.md
